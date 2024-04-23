@@ -38,12 +38,16 @@ Let's dive into the installation process!
 12. [Host Configuration](#host-configuration)
 13. [Add Multilib Repo for x32 Libraries](#add-multilib-repo-for-x32-libraries)
 14. [Reboot](#reboot)
-15. [Enabling Important Services](#enabling-important-services)
-16. [Add AUR Repository for yay](#add-aur-repository-for-yay)
-17. [Installation of open-source AMD graphic drivers](#installation-of-open-source-amd-graphic-drivers)
-18. [Installation of a desktop environment](#installation-of-a-desktop-environment)
-19. [Other Interesting Packages](#other-interesting-packages)
-20. [How to take snapshots in a btrfs system](#how-to-take-snapshots-in-a-btrfs-system)
+15. [Checks After Reboot](#checks-after-reboot)
+16. [Enabling Important Services](#enabling-important-services)
+17. [Add AUR Repository for yay](#add-aur-repository-for-yay)
+18. [Installation of open source AMD graphic drivers](#installation-of-open-source-amd-graphic-drivers)
+19. [Installation of a desktop environment](#installation-of-a-desktop-environment)
+20. [Other Interesting Packages](#other-interesting-packages)
+21. [How to take snapshots in a btrfs system](#how-to-take-snapshots-in-a-btrfs-system)
+    - [Create a snapshot](#create-a-snapshot)
+    - [Restore from a snapshot](#restore-from-a-snapshot)
+    - [Clean snapshots](#clean-snapshots)
 
 </br>
 
@@ -369,7 +373,7 @@ umount -R /mnt
 reboot now
 ```
 
-## Checks
+## Checks After Reboot
 
 - Check if Grub mounted correctly and if we can access our system without a graphical interface.
 - Type your username "nacho" and the password created earlier.
