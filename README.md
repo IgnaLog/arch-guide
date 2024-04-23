@@ -1,4 +1,4 @@
-# Arch Linux Installation Guide
+# <p style="text-align: center;"> Arch Linux Installation Guide</p>
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/archlinux/.github/6b33d3e9e2a522f73c8a65dc68d504e5deff6ad2/profile/archlinux-logo-dark-scalable.svg" alt="Arch Linux logo">
