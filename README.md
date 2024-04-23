@@ -1,75 +1,119 @@
-# Guía de Instalación de Arch Linux
+# Arch Linux Installation Guide
 
-![Arch Linux logo](https://raw.githubusercontent.com/archlinux/.github/6b33d3e9e2a522f73c8a65dc68d504e5deff6ad2/profile/archlinux-logo-dark-scalable.svg)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/archlinux/.github/6b33d3e9e2a522f73c8a65dc68d504e5deff6ad2/profile/archlinux-logo-dark-scalable.svg" alt="Arch Linux logo">
+</p>
 
-## Comprobaciones previas
+<p align="justify">
+Welcome to the Arch Linux Installation Guide! This guide will walk you through the process of installing Arch Linux on your system. Arch Linux is a lightweight and flexible Linux distribution, allowing you to customize your system according to your preferences.
+<p align="justify">
+This guide assumes you have basic knowledge of partitioning, file systems, and the command line. If you're new to Linux or unsure about any step, don't worry, we'll provide explanations along the way.
+</p>
+<p align="justify">
+Let's dive into the installation process!
+</p>
+</br>
+</br>
+<div align="center">
 
-Cambiar el teclado a español:
+[![Arch Linux Installation Guide](https://img.shields.io/badge/Official%20Guide-gray?style=flatsquare&logo=arch-linux)](https://wiki.archlinux.org/title/installation_guide)
+[![Arch Linux General Recommendations](https://img.shields.io/badge/Post--installation-gray?style=flatsquare&logo=arch-linux)](https://wiki.archlinux.org/title/General_recommendations)
+[![Arch Linux ISO Download](https://img.shields.io/badge/ISO%20Download-gray?style=flatsquare&logo=arch-linux)](https://archlinux.org/download/)
+
+</div>
+
+## Table of Contents
+
+1. [Preliminary Checks](#preliminary-checks)
+2. [Partitioning](#partitioning)
+3. [Formatting Partitions and Mounting Drives](#formatting-partitions-and-mounting-drives)
+4. [Create Partition Table](#create-partition-table)
+5. [Install Kernel and Necessary Packages](#install-kernel-and-necessary-packages)
+6. [Access Mount with chroot](#access-mount-with-chroot)
+7. [Set Timezone](#set-timezone)
+8. [Language and Keyboard Configuration](#language-and-keyboard-configuration)
+9. [Check Kernel Installation](#check-kernel-installation)
+10. [User Assignment](#user-assignment)
+11. [Grub Configuration](#grub-configuration)
+12. [Host Configuration](#host-configuration)
+13. [Add Multilib Repo for x32 Libraries](#add-multilib-repo-for-x32-libraries)
+14. [Reboot](#reboot)
+15. [Enabling Important Services](#enabling-important-services)
+16. [Add AUR Repository for yay](#add-aur-repository-for-yay)
+17. [Installation of open-source AMD graphic drivers](#installation-of-open-source-amd-graphic-drivers)
+18. [Installation of a desktop environment](#installation-of-a-desktop-environment)
+19. [Other Interesting Packages](#other-interesting-packages)
+20. [How to take snapshots in a btrfs system](#how-to-take-snapshots-in-a-btrfs-system)
+
+## Preliminary Checks
+
+Change keyboard layout to Spanish:
 
 ```shell
 loadkeys es
 ```
 
-Comprobar el estado de la red:
+Check network status:
 
 ```shell
 ping -c 1 google.es
 ```
 
-Comprobar que el reloj del hardware está correcto:
+Check hardware clock status:
 
 ```shell
 timedatectl status
 ```
 
-Si no es correcto actualizarlo:
+If incorrect, update it:
 
 ```shell
 timedatectl set-ntp true
 ```
 
-## Creamos particiones
+## Partitioning
 
-Listar nuestros discos duros:
+List available disks:
 
 ```shell
 lsblk
 ```
 
-Abrir el programa de particionamiento especial para discos GPT:
+Open the partitioning program for GPT disks:
 
 ```shell
 cgdisk /dev/nvme0n1
 ```
 
-Sustituye `nvme0n1` por el disco duro que vas a particionar.
-Particionamiento que yo uso:
+Replace `nvme0n1` with the disk you are partitioning.
+
+Partitioning scheme I use:
 
 | #   | Partition           | Description     | Hex Code |
 | --- | ------------------- | --------------- | -------- |
 | 1   | 512MB EFI partition | /boot partition | ef00     |
 | 2   | 100% size partition | /root partition | 8300     |
 
-Posteriormente escribe con `write` y salde cgdisk en `quit`.
+Then write with `write` and exit cgdisk with `quit`.
 
-## Formateamos particiones y hacemos el montaje de las unidades
+## Formatting Partitions and Mounting Drives
 
-Ejecutamos `lsblk -l` para ver que está todo bien definido.
+Run `lsblk -l` to verify everything is defined correctly.
 
 <details>
-<summary><big>Formato ext4:</big></summary>
+<summary><big>ext4 Format:</big></summary>
 
-Primero formateamos las particiones:
+First, format the partitions:
 
 ```shell
 mkfs.vfat -F 32 /dev/nvme0n1p5
 mkfs.ext4 /dev/nvme0n1p6
 ```
 
-Sustituye `nvme0n1p5` por tu particion EFI.
-Sustituye `nvme0n1p6` por tu particion raíz.
+Replace `nvme0n1p5` with your EFI partition.
+Replace `nvme0n1p6` with your root partition.
 
-Después montamos las unidades:
+Then mount the drives:
 
 ```shell
 mount /dev/nvme0n1p6 /mnt
@@ -77,24 +121,24 @@ mkdir /mnt/boot
 mount /dev/nvme0n1p5 /mnt/boot
 ```
 
-lsblk para ver que todo está montado correctamente.
+Run `lsblk` to verify everything is mounted correctly.
 
 </details>
 </br>
 <details>
-<summary><big>Formato btrfs:</big></summary>
+<summary><big>btrfs Format:</big></summary>
 
-Primero formateamos las particiones:
+First, format the partitions:
 
 ```shell
 mkfs.vfat -F 32 /dev/nvme0n1p5
 mkfs.btrfs /dev/nvme0n1p6
 ```
 
-Sustituye `nvme0n1p5` por tu particion EFI.
-Sustituye `nvme0n1p6` por tu particion raíz.
+Replace `nvme0n1p5` with your EFI partition.
+Replace `nvme0n1p6` with your root partition.
 
-Después montamos las unidades:
+Then mount the drives:
 
 ```shell
 mount /dev/nvme0n1p6 /mnt/
@@ -123,54 +167,54 @@ lsblk
 </details>
 </br>
 
-Montamos ahora la partición EFI en /boot:
+Now mount the EFI partition to /boot:
 
 ```shell
 mkdir -p /mnt/boot
 mount /dev/nvme0n1p5 /mnt/boot
 ```
 
-Ejecutamos `lsblk` para ver que esta todo bien montado.
+Run `lsblk` to verify everything is mounted correctly.
 
-## Creamos la tabla de particiones
+## Create Partition Table
 
 ```shell
 genfstab -U /mnt
 genfstab -U /mnt > /mnt/etc/fstab
 ```
 
-## Instalamos el kernel y algunos paquetes necesarios
+## Install Kernel and Necessary Packages
 
 ```shell
 pacstrap /mnt base base-devel linux=6.7.9.arch1-1 linux-firmware networkmanager grub efibootmgr os-prober pulseaudio man git nano vim neofetch
 ```
 
-## Accedemos a al montaje con chroot
+## Access Mount with chroot
 
 ```shell
 arch-chroot /mnt
 ```
 
-## Definimos zona horaria
+## Set Timezone
 
 ```shell
 ln -sf /usr/share/zoneinfo/Europe/Madrid /etc/localtime
 ```
 
-Sincroniza la hora del sistema operativo con la del hardware en UTC:
+Sync system time with hardware clock in UTC:
 
 ```shell
 hwclock --systohc --utc
 ```
 
-## Configuración de idioma y teclado
+## Language and Keyboard Configuration
 
 ```shell
 nano /etc/locale.gen
 ```
 
-- `ctrl + w` para filtrar por `es_ES`.
-- Descomentamos `es_ES.UTF-8 UTF-8` y guardamos.
+- `ctrl + w` to filter by `es_ES`.
+- Uncomment `es_ES.UTF-8 UTF-8` and save.
 
 ```shell
 locale-gen
@@ -181,19 +225,19 @@ echo LANG=es_ES.UTF-8 > /etc/locale.conf
 export LANG=es_ES.UTF-8
 ```
 
-Ahora escribimos y guardamos `KEYMAP=es` en:
+Now write and save `KEYMAP=es` to:
 
 ```shell
 nano /etc/vconsole.conf
 ```
 
-## Comprobar que el kernel se instaló correctamente
+## Check Kernel Installation
 
 ```shell
 mkinitcpio -p linux
 ```
 
-## Asignación de usuarios
+## User Assignment
 
 ```shell
 passwd
@@ -202,70 +246,70 @@ passwd nacho
 usermod -aG wheel nacho
 ```
 
-Ahora ejecutamos el siguiente comando y deberemos observar la salida `wheel nacho`
+Now execute the following command and you should see `wheel nacho` in the output:
 
 ```shell
 groups nacho
 ```
 
-Instalamos sudo por si no lo tenemos:
+Install sudo if not already installed:
 
 ```shell
 pacman -S sudo
 ```
 
-Ahora modificamos el archivo de sudo y descomentamos `%wheel ALL=(ALL:ALL) ALL`:
+Now modify the sudoers file and uncomment `%wheel ALL=(ALL:ALL) ALL`:
 
 ```shell
 nano /etc/sudoers
 ```
 
-### Comprobaciones:
+### Checks:
 
-Comprobamos que pasamos al user nacho:
+Check if we switch to the user nacho:
 
 ```shell
 su nacho
 ```
 
-Ver que pertenecemos al grupo wheel:
+Check if we belong to the wheel group:
 
 ```shell
 id
 ```
 
-Probar si al hacer `sudo su` y pones tu contraseña te conviertes en root.
+Try if `sudo su` turns you into root after entering your password.
 
-## Configuración de Grub:
+## Grub Configuration
 
-Para una instalación en un sistema 64bits, UEFI y con disco duro GPT es necesario ejecutar este comando para que tu firmware detecte Grub:
+For a 64-bit, UEFI, and GPT installation, it is necessary to run this command for your firmware to detect Grub:
 
 ```shell
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=Grub --recheck
 ```
 
-La ubicación de `--efi-directory=/boot` será aquella donde este montada nuestra ESP. En este caso fue montada en `/boot`.
+The location of `--efi-directory=/boot` will be where our ESP is mounted. In this case, it was mounted at `/boot`.
 
-Para detectar estos cambios y configurar Grub debemos ejecutar:
+To detect these changes and configure Grub, we need to run:
 
 ```shell
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
-Si queremos que Grub detecte otro sistema operativo como Windows tenemos que hacer lo siguiente.
+If we want Grub to detect another operating system like Windows, we have to do the following.
 
-Primero debemos modificar el fichero grub:
+First, we need to modify the grub file:
 
 ```shell
 sudo nano /etc/default/grub
 ```
 
-Estableciendo y descomentando los siguientes parámetros:
+Set and uncomment the following parameters:
 
 - GRUB_TIMEOUT=8
 - GRUB_DISABLE_OS_PROBER=false
 
-Ahora crearemos un punto de montaje para la EFI System Partition de Windows y una vez montado allí copiaremos el contenido de Microsoft en nuestra EFI de Grub:
+Now we will create a mount point for the Windows EFI System Partition and once mounted there, we will copy the contents of Microsoft into our Grub EFI:
 
 ```shell
 mkdir /mnt/win
@@ -273,27 +317,27 @@ mount /dev/nvme0n1p1 /mnt/win/
 cp -r /mnt/win/EFI/Microsoft /boot/EFI
 ```
 
-Volvemos a ejecutar grub-mkconfig para que se apliquen los cambios
+Run grub-mkconfig again to apply the changes:
 
 ```shell
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
-## Configuración de Host
+## Host Configuration
 
-Le asignamos un nombre a la máquina.
+Assign a name to the machine.
 
 ```shell
 echo ArchLinux > /etc/hostname
 ```
 
-Modificamos nuestro fichero hosts con el nombre de la máquina que asignamos.
+Modify our hosts file with the name of the machine we assigned.
 
 ```shell
 sudo nano /etc/hosts
 ```
 
-Añadimos:
+Add:
 
 ```
 127.0.0.1	localhost
@@ -301,21 +345,21 @@ Añadimos:
 127.0.0.1	ArchLinux.localhost ArchLinux
 ```
 
-## Añadimos el Multilib repo para librerías x32
+## Add Multilib Repo for x32 Libraries
 
-Descomentamos `multilib` y NO `multilib-testing`.
+Uncomment `multilib` and NOT `multilib-testing`.
 
 ```shell
 nano /etc/pacman.conf
 ```
 
-Actualizamos pacman:
+Update pacman:
 
 ```shell
 pacman -Syy
 ```
 
-## Reiniciamos
+## Reboot
 
 ```shell
 exit
@@ -323,18 +367,18 @@ umount -R /mnt
 reboot now
 ```
 
-## Comprobaciones
+## Checks
 
-- Ver si el grub se monto correctamente y si accedemos a nuestro sistema sin interfaz gráfica.
-- Tecleamos nuestro usuario "nacho" y la contraseña creada anteriormente.
-- Comprobar si el idioma de nuestro teclado es el correcto escribiendo un guión `-`.
-- Comprobamos conexión a Internet con `ping -c 1 google.es`.
+- Check if Grub mounted correctly and if we can access our system without a graphical interface.
+- Type your username "nacho" and the password created earlier.
+- Check if our keyboard language is correct by typing a dash `-`.
+- Check Internet connection with `ping -c 1 google.es`.
 
-Si no tenemos Internet en el siguiente paso lo resolvemos.
+If you don't have Internet, resolve it in the next step.
 
-## Habilitando algunos servicios importantes
+## Enabling Important Services
 
-Habilitamos el servicio de NetworkManager para poder tener conexión a Internet.
+Enable the NetworkManager service to have Internet connection.
 
 ```shell
 sudo su
@@ -342,20 +386,20 @@ systemctl start NetworkManager.service
 systemctl enable NetworkManager
 ```
 
-Comprobamos que tenemos Internet con `ping -c 1 google.es`.
+Check if you have Internet with `ping -c 1 google.es`.
 
-Habilitamos el servicio de audio
+Enable audio service:
 
 ```shell
 systemctl start pulseaudio
 systemctl --user enable pulseaudio
 ```
 
-## Añadimos el repositorio AUR de yay
+## Add AUR Repository for yay
 
-Primero comprobar que estamos con el usuario nacho y no como root.
+First, make sure you are logged in as the user nacho, not as root.
 
-Cremos un direcorio repos donde clonar el repo de yay. Desde allí descargamos el repo oficial de yay o de paru como preferáis y hacemos makepkg.
+Create a directory repos where you can clone the yay repo. From there, download the yay official repo or paru as you prefer and makepkg.
 
 ```shell
 mkdir repos
@@ -366,11 +410,11 @@ makepkg -si
 yay
 ```
 
-## Instalación de controladores gráficos open source de AMD
+## Installation of open source AMD graphic drivers
 
-DRIVER AMDGPU:
+AMDGPU DRIVER:
 
-Este es el principal que debemos instalar.
+This is the main driver we should install.
 
 ```shell
 sudo pacman -S xf86-video-amdgpu mesa
@@ -394,52 +438,52 @@ VDPU:
 sudo pacman -S libva-mesa-driver lib32-libva-mesa-driver mesa-vdpau lib32-mesa-vdpau
 ```
 
-## Instalación de un entorno de escritorio
+## Installation of a desktop environment
 
-En este caso instalaré Gnome con wayland y el gestor de pantalla por defecto gdm pero podéis elegir cualquier otro como Hyprland y sdmm por ejemplo.
+In this case, I will install Gnome with Wayland and the default display manager gdm, but you can choose any other like Hyprland and sdmm for example.
 
 ```shell
 sudo pacman -S gnome gdm
 sudo systemctl enable gdm.service
 ```
 
-## Otros paquetes interesantes
+## Other Interesting Packages
 
-Aquí hay algunos paquetes interesantes que podemos instalar si queremos.
+Here are some interesting packages you can install if you want.
 
 ```shell
 sudo pacman -S kitty dolphin dunst unrar unzip firefox htop feh gnome-screenshot gimp
 ```
 
-## Como hacer snapshots en un sistema btrfs
+## How to take snapshots in a btrfs system
 
-### Crear un snapshot:
+### Create a snapshot:
 
-Lo crearemos de todo el sistema root / en nuestro directorio que creamos de snapshots.
+We will create it for the entire root system / in our snapshots directory.
 
 ```shell
 sudo btrfs subvolume snapshot / /.snapshots/<nombre del snapshot>
 ```
 
-Comprobar que está creado.
+Check if it is created.
 
-### Restaurar desde un snapshot:
+### Restore from a snapshot:
 
-Montamos nuestro partición root en /mnt.
+Mount our root partition again, in my case it is on the partition `nvme0n1p6` in /mnt.
 
 ```shell
 mount /dev/nvme0n1p6 /mnt
 ```
 
-`nvme0n1p6` es donde se encuentra mi sistema btrfs root.
+`nvme0n1p6` is where my btrfs root system is located.
 
-Comprobar que se montó correctamente:
+Check if it is mounted correctly:
 
 ```shell
 ls -l /mnt/
 ```
 
-Movemos nuestro volumen raíz @ a un volumen @latest_root. Después movemos nuestra snapshot creada al volumen raíz @. Por último reiniciamos.
+Move our root volume @ to a volume @latest_root. Then move our created snapshot to the root volume @. Finally, reboot.
 
 ```shell
 mv /mnt/@ /mnt/@latest_root
@@ -447,31 +491,31 @@ mv /mnt/@.snapshots/Base /mnt/@
 reboot
 ```
 
-### Limpiar snapshots:
+### Clean snapshots:
 
-Este paso es importante para eliminar el anterior root y no ocupar espacio.
+This step is important to delete the old root and not occupy space.
 
-Montamos de nuevo nuestro sistema raíz en mi caso está en la partición `nvme0n1p6` en /mnt.
+Mount again our root system in my case it is on the partition `nvme0n1p6` in /mnt.
 
 ```shell
 mount /dev/nvme0n1p6 /mnt/
 ```
 
-Ahora tenemos dos opciones para borrar el volumen antiguo con todo el contenido root antiguo que ya no usaremos:
+Now we have two options to delete the old volume with all the old root content that we will no longer use:
 
-1. Con btrfs:
+1. With btrfs:
 
    ```shell
    btrfs subvolume delete /mnt/@latest_root
    ```
 
-2. Con rm:
+2. With rm:
 
    ```shell
    sudo rm -r /mnt/@latest_root
    ```
 
-Finalmente desmontamos /mnt.
+Finally, unmount /mnt.
 
 ```shell
 umount /mnt
