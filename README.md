@@ -13,7 +13,7 @@ This guide assumes you have basic knowledge of partitioning, file systems, and t
 Let's dive into the installation process!
 </p>
 </br>
-</br>
+
 <div align="center">
 
 [![Arch Linux Installation Guide](https://img.shields.io/badge/Official%20Guide-gray?style=flatsquare&logo=arch-linux)](https://wiki.archlinux.org/title/installation_guide)
@@ -44,6 +44,8 @@ Let's dive into the installation process!
 18. [Installation of a desktop environment](#installation-of-a-desktop-environment)
 19. [Other Interesting Packages](#other-interesting-packages)
 20. [How to take snapshots in a btrfs system](#how-to-take-snapshots-in-a-btrfs-system)
+
+</br>
 
 ## Preliminary Checks
 
