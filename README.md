@@ -183,7 +183,7 @@ Run `lsblk` to verify everything is mounted correctly.
 ## Install Kernel and Necessary Packages
 
 ```shell
-pacstrap /mnt base base-devel linux-lts linux-firmware networkmanager grub efibootmgr os-prober pulseaudio man git nano vim
+pacstrap /mnt base base-devel linux-lts linux-firmware networkmanager grub efibootmgr os-prober pulseaudio git nano vim
 ```
 
 If you prefer to install the latest version of the Linux kernel, replace linux-lts with linux and skip the step 18. The latest version of the Linux kernel may not be compatible with your hardware.
