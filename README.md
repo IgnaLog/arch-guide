@@ -5,7 +5,7 @@
 </p>
 
 <p align="justify">
-Welcome to the Arch Linux Installation Guide! This guide will walk you through the process of installing Arch Linux on your system. Arch Linux is a lightweight and flexible Linux distribution, allowing you to customize your system according to your preferences.
+Welcome to the Arch Linux Installation Guide! This guide is a comprehensive resource for installing Arch Linux on your system, tailored for disks using GPT partitioning and systems with UEFI firmware. Arch Linux is a lightweight and flexible Linux distribution that follows a "do-it-yourself" (DIY) approach, allowing you to customize your system according to your preferences.
 <p align="justify">
 This guide assumes you have basic knowledge of partitioning, file systems, and the command line. If you're new to Linux or unsure about any step, don't worry, we'll provide explanations along the way.
 </p>
@@ -27,8 +27,10 @@ Let's dive into the installation process!
 1. [Preliminary Checks](#preliminary-checks)
 2. [Partitioning](#partitioning)
 3. [Formatting Partitions and Mounting Drives](#formatting-partitions-and-mounting-drives)
-4. [Create Partition Table](#create-partition-table)
-5. [Install Kernel and Necessary Packages](#install-kernel-and-necessary-packages)
+   - [ext4 Format](#ext4-format)
+   - [btrfs Format](#btrfs-format)
+4. [Install Kernel and Necessary Packages](#install-kernel-and-necessary-packages)
+5. [Create Partition Table](#create-partition-table)
 6. [Access Mount with chroot](#access-mount-with-chroot)
 7. [Set Timezone](#set-timezone)
 8. [Language and Keyboard Configuration](#language-and-keyboard-configuration)
@@ -41,10 +43,11 @@ Let's dive into the installation process!
 15. [Checks After Reboot](#checks-after-reboot)
 16. [Enabling Important Services](#enabling-important-services)
 17. [Add AUR Repository for yay](#add-aur-repository-for-yay)
-18. [Installation of open source AMD graphic drivers](#installation-of-open-source-amd-graphic-drivers)
-19. [Installation of a desktop environment](#installation-of-a-desktop-environment)
-20. [Other Interesting Packages](#other-interesting-packages)
-21. [How to take snapshots in a btrfs system](#how-to-take-snapshots-in-a-btrfs-system)
+18. [Installing a Newer Version of Linux than Linux-lts](#installing-a-newer-version-of-linux-than-linux-lts)
+19. [Installation of Open Source AMD Graphic Drivers](#installation-of-open-source-amd-graphic-drivers)
+20. [Installation of a Desktop Environment](#installation-of-a-desktop-environment)
+21. [Other Interesting Packages](#other-interesting-packages)
+22. [How to Take Snapshots in a btrfs System](#how-to-take-snapshots-in-a-btrfs-system)
     - [Create a snapshot](#create-a-snapshot)
     - [Restore from a snapshot](#restore-from-a-snapshot)
     - [Clean snapshots](#clean-snapshots)
@@ -104,7 +107,7 @@ Then write with `write` and exit cgdisk with `quit`.
 
 ## Formatting Partitions and Mounting Drives
 
-Run `lsblk -l` to verify everything is defined correctly.
+Run `lsblk` to verify everything is defined correctly.
 
 <details>
 <summary><big>ext4 Format:</big></summary>
@@ -147,27 +150,22 @@ Replace `nvme0n1p6` with your root partition.
 Then mount the drives:
 
 ```shell
-mount /dev/nvme0n1p6 /mnt/
+mount /dev/nvme0n1p6 /mnt
 btrfs su cr /mnt/@
-mount -o compress=xstd,subvol=@ /dev/nvme0n1p6 /mnt
 btrfs su cr /mnt/@home
 btrfs su cr /mnt/@pkg
 btrfs su cr /mnt/@log
 btrfs su cr /mnt/@snapshots
 umount /mnt
-mkdir /mnt
+mount -o compress=zstd,subvol=@ /dev/nvme0n1p6 /mnt
 mkdir -p /mnt/home
 mkdir -p /mnt/var/cache/pacman/pkg
 mkdir -p /mnt/var/log
 mkdir -p /mnt/.snapshots
-mount -o compress=xstd,subvol=@home /dev/nvme0n1p6 /mnt/home
-mount -o compress=xstd,subvol=@pkg /dev/nvme0n1p6 /mnt/var/cache/pacman/pkg
-mount -o compress=xstd,subvol=@log /dev/nvme0n1p6 /mnt/var/log
-mount -o compress=xstd,subvol=@snapshots /dev/nvme0n1p6 /mnt/.snapshots
-lsblk
-mkdir -p /mnt/boot
-mount /dev/nvme0n1p5 /mnt/boot
-lsblk
+mount -o compress=zstd,subvol=@home /dev/nvme0n1p6 /mnt/home
+mount -o compress=zstd,subvol=@pkg /dev/nvme0n1p6 /mnt/var/cache/pacman/pkg
+mount -o compress=zstd,subvol=@log /dev/nvme0n1p6 /mnt/var/log
+mount -o compress=zstd,subvol=@snapshots /dev/nvme0n1p6 /mnt/.snapshots
 ```
 
 </details>
@@ -182,17 +180,19 @@ mount /dev/nvme0n1p5 /mnt/boot
 
 Run `lsblk` to verify everything is mounted correctly.
 
+## Install Kernel and Necessary Packages
+
+```shell
+pacstrap /mnt base base-devel linux-lts linux-firmware networkmanager grub efibootmgr os-prober pulseaudio man git nano vim
+```
+
+If you prefer to install the latest version of the Linux kernel, replace linux-lts with linux and skip the step 18. The latest version of the Linux kernel may not be compatible with your hardware.
+
 ## Create Partition Table
 
 ```shell
 genfstab -U /mnt
-genfstab -U /mnt > /mnt/etc/fstab
-```
-
-## Install Kernel and Necessary Packages
-
-```shell
-pacstrap /mnt base base-devel linux=6.7.9.arch1-1 linux-firmware networkmanager grub efibootmgr os-prober pulseaudio man git nano vim neofetch
+genfstab -U /mnt >> /mnt/etc/fstab
 ```
 
 ## Access Mount with chroot
@@ -240,7 +240,7 @@ nano /etc/vconsole.conf
 ## Check Kernel Installation
 
 ```shell
-mkinitcpio -p linux
+mkinitcpio -p linux-lts
 ```
 
 ## User Assignment
@@ -323,18 +323,26 @@ mount /dev/nvme0n1p1 /mnt/win/
 cp -r /mnt/win/EFI/Microsoft /boot/EFI
 ```
 
+Run os-prober:
+
+```shell
+sudo os-prober
+```
+
 Run grub-mkconfig again to apply the changes:
 
 ```shell
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
+If the Windows entry does not appear, I advise restarting and re-running grub-mkconfig from the previous step.
+
 ## Host Configuration
 
 Assign a name to the machine.
 
 ```shell
-echo ArchLinux > /etc/hostname
+echo archlinux > /etc/hostname
 ```
 
 Modify our hosts file with the name of the machine we assigned.
@@ -346,20 +354,20 @@ sudo nano /etc/hosts
 Add:
 
 ```
-127.0.0.1	localhost
-::1			localhost
-127.0.0.1	ArchLinux.localhost ArchLinux
+127.0.0.1   localhost
+::1         localhost
+127.0.0.1   archlinux.localhost archlinux
 ```
 
 ## Add Multilib Repo for x32 Libraries
 
-Uncomment `multilib` and NOT `multilib-testing`.
+Uncomment `[multilib]` and its `Include` content in the following file:
 
 ```shell
 nano /etc/pacman.conf
 ```
 
-Update pacman:
+Update the Pacman database:
 
 ```shell
 pacman -Syy
@@ -397,7 +405,7 @@ Check if you have Internet with `ping -c 1 google.es`.
 Enable audio service:
 
 ```shell
-systemctl start pulseaudio
+systemctl --user start pulseaudio.service
 systemctl --user enable pulseaudio
 ```
 
@@ -416,7 +424,63 @@ makepkg -si
 yay
 ```
 
-## Installation of open source AMD graphic drivers
+## Installing a Newer Version of Linux than Linux-lts
+
+Using yay or paru, install the `downgrade` package:
+
+```shell
+sudo yay -S downgrade
+```
+
+View all available Linux packages:
+
+```shell
+sudo downgrade linux
+```
+
+Select the most recent version of Linux that is compatible with your hardware. In my case, the version is `6.7.9.arch1-1` at the moment.
+
+After installing the version, downgrade will prompt you if you want to add this package to the list of packages not to be updated by pacman. Select YES.
+
+Subsequently, to make this version detected in the Grub boot menu, you need to run the command again:
+
+```shell
+grub-mkconfig -o /boot/grub/grub.cfg
+```
+
+Now, in the Grub boot menu under the advanced options entry, you can choose between the linux-lts kernel and the recently installed Linux kernel.
+
+If you want to remove the linux-lts kernel and prevent it from appearing in the Grub entry, first boot into the functional Linux kernel and remove the kernel with the following command:
+
+```shell
+sudo pacman -R linux-lts
+```
+
+Verify that the Linux LTS kernel package is no longer installed:
+
+```shell
+pacman -Q | grep linux-lts
+```
+
+You can check if there are any remaining files of the Linux LTS kernel on your system with the following command:
+
+```shell
+sudo find / -name "vmlinuz-linux-lts*"
+```
+
+Then, rerun:
+
+```shell
+grub-mkconfig -o /boot/grub/grub.cfg
+```
+
+Finally, it is advisable to reboot and verify that the changes have worked. It is also recommended to run `mkinitcpio` to ensure that there are no issues with the Linux kernel:
+
+```shell
+mkinitcpio -p linux
+```
+
+## Installation of Open Source AMD Graphic Drivers
 
 AMDGPU DRIVER:
 
@@ -432,25 +496,20 @@ VULKAN:
 sudo pacman -S vulkan-radeon lib32-vulkan-radeon
 ```
 
-OPENCL:
-
-```shell
-sudo pacman -S opencl-mesa
-```
-
 VDPU:
 
 ```shell
 sudo pacman -S libva-mesa-driver lib32-libva-mesa-driver mesa-vdpau lib32-mesa-vdpau
 ```
 
-## Installation of a desktop environment
+## Installation of a Desktop Environment
 
 In this case, I will install Gnome with Wayland and the default display manager gdm, but you can choose any other like Hyprland and sdmm for example.
 
 ```shell
 sudo pacman -S gnome gdm
 sudo systemctl enable gdm.service
+sudo systemctl start gdm
 ```
 
 ## Other Interesting Packages
@@ -458,10 +517,10 @@ sudo systemctl enable gdm.service
 Here are some interesting packages you can install if you want.
 
 ```shell
-sudo pacman -S kitty dolphin dunst unrar unzip firefox htop feh gnome-screenshot gimp
+sudo pacman -S kitty dunst unrar unzip firefox htop feh gnome-screenshot gimp neofetch
 ```
 
-## How to take snapshots in a btrfs system
+## How to Take Snapshots in a btrfs System
 
 ### Create a snapshot:
 
